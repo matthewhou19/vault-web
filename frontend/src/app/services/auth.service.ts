@@ -19,11 +19,12 @@ export class AuthService {
       .pipe(tap((res) => this.saveToken(res.token)));
   }
 
-  register(username: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/register`, {
-      username,
-      password,
-    });
+  register(username: string, password: string): Observable<string> {
+    return this.http.post(
+      `${this.apiUrl}/auth/register`,
+      { username, password },
+      { responseType: 'text' },
+    );
   }
 
   saveToken(token: string): void {
