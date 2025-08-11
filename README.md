@@ -1,4 +1,4 @@
-# Vault Hub
+# Vault Web
 
 This repository contains both backend and frontend code for local development. The backend is powered by **Spring Boot**, the frontend is built with **Angular**, and a **PostgreSQL** database is used for persistent data storage.
 
@@ -6,7 +6,7 @@ This repository contains both backend and frontend code for local development. T
 
 ---
 
-**Vault Hub** is the central entry point for all services in the Vault Web ecosystem.  
+**Vault Web** is the central entry point for all services in the Vault Web ecosystem.  
 It provides a secure and private dashboard to access:
 
 - 🔐 A built-in password manager
