@@ -25,11 +25,12 @@ jobs:
           java-version: '21'
 
       - name: Build project & generate Javadoc
-        working-directory: ./backend
+        working-directory: .
         run: |
+          cd backend
           ./mvnw clean javadoc:javadoc -Dmaven.javadoc.failOnError=false
-          rm -rf .docs
-          mv target/reports/apidocs .docs
+          rm -rf ../docs
+          mv target/reports/apidocs ../docs
 
       - name: Commit and push changes
         run: |
