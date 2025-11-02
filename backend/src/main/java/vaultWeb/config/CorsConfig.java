@@ -3,8 +3,12 @@ package vaultWeb.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Global CORS configuration for the application.
@@ -28,17 +32,34 @@ public class CorsConfig {
      * @return CorsFilter instance that intercepts requests and adds necessary
      * CORS headers for allowed origins, methods, headers, and credentials.
      */
+//    @Bean
+//    public CorsFilter corsFilter() {
+//        CorsConfiguration config = new CorsConfiguration();
+//        config.addAllowedOrigin("http://localhost:4200");
+//        config.addAllowedHeader("*");
+//        config.addAllowedMethod("*");
+//        config.setAllowCredentials(true);
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", config);
+//
+//        return new CorsFilter(source);
+//    }
+
     @Bean
-    public CorsFilter corsFilter() {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("http://localhost:4200");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
+        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedHeaders(Arrays.asList(
+                "Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin",
+                "Access-Control-Request-Method", "Access-Control-Request-Headers", "Cache-Control"
+                ));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         config.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return new CorsFilter(source);
+        source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/chat.**", config);
+        source.registerCorsConfiguration("/groups/**", config);
+        return source;
     }
 }
