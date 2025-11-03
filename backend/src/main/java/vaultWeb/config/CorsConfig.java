@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Global CORS configuration for the application.
+ * Global CORS configuration Source for the application.
  *
  * <p>
  * This configuration allows the frontend application running on a different origin
@@ -27,24 +27,11 @@ import java.util.List;
 public class CorsConfig {
 
     /**
-     * Defines a CORS filter that applies the CORS configuration to all endpoints.
+     * Defines a CORS Configuration source that applies the CORS configuration to all endpoints.
      *
      * @return CorsFilter instance that intercepts requests and adds necessary
      * CORS headers for allowed origins, methods, headers, and credentials.
      */
-//    @Bean
-//    public CorsFilter corsFilter() {
-//        CorsConfiguration config = new CorsConfiguration();
-//        config.addAllowedOrigin("http://localhost:4200");
-//        config.addAllowedHeader("*");
-//        config.addAllowedMethod("*");
-//        config.setAllowCredentials(true);
-//
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", config);
-//
-//        return new CorsFilter(source);
-//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
