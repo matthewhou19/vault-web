@@ -15,10 +15,16 @@
     />
 
     <!-- USERNAME ERRORS -->
-    <div class="text-red-600 text-sm mt-1" *ngIf="f['username'].errors?.['required']">
+    <div
+      class="text-red-600 text-sm mt-1"
+      *ngIf="f['username'].errors?.['required']"
+    >
       Username is required.
     </div>
-    <div class="text-red-600 text-sm mt-1" *ngIf="f['username'].errors?.['usernameTaken']">
+    <div
+      class="text-red-600 text-sm mt-1"
+      *ngIf="f['username'].errors?.['usernameTaken']"
+    >
       Username is already taken.
     </div>
 
@@ -31,7 +37,9 @@
     />
 
     <div class="text-red-600 text-sm mt-1" *ngIf="f['password'].touched">
-      <div *ngIf="f['password'].errors?.['required']">Password is required.</div>
+      <div *ngIf="f['password'].errors?.['required']">
+        Password is required.
+      </div>
       <div *ngIf="f['password'].errors?.['minlength']">
         Minimum 8 characters required.
       </div>

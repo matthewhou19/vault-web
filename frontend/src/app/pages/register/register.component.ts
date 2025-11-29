@@ -18,6 +18,7 @@ import {
   map,
   first,
 } from 'rxjs/operators';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-register',
@@ -39,7 +40,8 @@ export class RegisterComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private toastr: ToastrService,
   ) {}
 
   ngOnInit(): void {
@@ -63,7 +65,7 @@ export class RegisterComponent implements OnInit {
         ],
         confirmPassword: ['', Validators.required],
       },
-      { validators: this.passwordMatchValidator }
+      { validators: this.passwordMatchValidator },
     );
   }
 
@@ -88,11 +90,13 @@ export class RegisterComponent implements OnInit {
 
     this.auth.register(username!, password!).subscribe({
       next: () => {
-        alert('Registration successful! You can now login.');
+        this.toastr.success('Registration successful! You can now login.');
         this.router.navigate(['/login']);
       },
       error: (err) => {
-        alert(err.error?.message || 'Registration failed. Try again.');
+        this.toastr.error(
+          err.error?.message || 'Registration failed. Try again.',
+        );
       },
     });
   }
@@ -106,7 +110,7 @@ export class RegisterComponent implements OnInit {
         distinctUntilChanged(),
         switchMap((username) => authService.checkUsernameExists(username)),
         map((exists) => (exists ? { usernameTaken: true } : null)),
-        first()
+        first(),
       );
     };
   }
