@@ -6,6 +6,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -31,6 +34,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
   private final MyUserDetailsService userDetailsService;
+
+  private final Set<String> PUBLIC_PATHS =
+      new HashSet<String>(
+          List.of(
+              "/api/auth/login",
+              "/api/auth/register",
+              "/api/auth/check-username",
+              "/api/auth/refresh"));
 
   /**
    * Constructs a new {@code JwtAuthFilter} with the specified {@link JwtUtil} and {@link
@@ -67,9 +78,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
 
     String path = request.getServletPath();
-    if (path.startsWith("/api/auth/register")
-        || path.startsWith("/api/auth/login")
-        || path.startsWith("/api/auth/refresh")) {
+    if (PUBLIC_PATHS.contains(path)) {
       filterChain.doFilter(request, response);
       return;
     }
