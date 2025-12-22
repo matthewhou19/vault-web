@@ -16,7 +16,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vaultWeb.exceptions.notfound.UserNotFoundException;
 import vaultWeb.models.RefreshToken;
@@ -57,7 +56,6 @@ public class AuthService {
   private final JwtUtil jwtUtil;
   private final UserRepository userRepository;
   private final RefreshTokenRepository refreshTokenRepository;
-  private final PasswordEncoder passwordEncoder;
   private final RefreshTokenService refreshTokenService;
 
   /**
@@ -170,6 +168,7 @@ public class AuthService {
    * @param response HTTP response used to set the rotated refresh token cookie
    * @return a response containing a new access token if the refresh succeeds
    */
+  @Transactional
   public ResponseEntity<?> refresh(String rawRefreshToken, HttpServletResponse response) {
 
     Claims claims;

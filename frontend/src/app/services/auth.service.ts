@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable, tap } from 'rxjs';
+import { finalize, map, Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Router } from '@angular/router';
 
@@ -83,12 +83,16 @@ export class AuthService {
     localStorage.removeItem('username');
     this.http
       .post(`${this.apiUrl}/auth/logout`, {}, { withCredentials: true })
+      .pipe(
+        finalize(() => {
+          this.router.navigate(['/login']);
+        }),
+      )
       .subscribe({
         error: (err) => {
           console.error('Backend logout failed', err);
         },
       });
-    this.router.navigate(['/login']);
   }
 
   checkUsernameExists(username: string): Observable<boolean> {

@@ -141,7 +141,7 @@
                 <configuration>
                     <java>
                         <googleJavaFormat>
-                            <version>1.28.0</version>  <!-- Add this line for Java 21 compatibility -->
+                            <version>1.28.0</version>
                         </googleJavaFormat>
                         <includes>
                             <include>src/**/*.java</include>

@@ -26,8 +26,11 @@ public class RefreshTokenService {
   /**
    * Creates and issues a new refresh token for the given user.
    *
-   * <p>This method is responsible for generating, persisting, and delivering refresh tokens during
-   * authentication and refresh token rotation.
+   * <p><b>Session model:</b>
+   *
+   * <p>This implementation enforces a <b>single active session per user</b>. Whenever a new refresh
+   * token is issued, all previously issued refresh tokens for the user are revoked. This design
+   * prioritizes security over multi-device support by preventing concurrent sessions.
    *
    * <p><b>Workflow:</b>
    *
