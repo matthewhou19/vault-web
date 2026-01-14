@@ -14,6 +14,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
@@ -30,7 +32,7 @@ public class RateLimitFilter implements Filter {
           .maximumSize(10_000) // safety limit
           .build();
 
-  @Value("${spring.rateLimitPerMinute}")
+  @Value("${app.rate-limit-per-minute:100}")
   private Integer rateLimit;
 
   @Autowired private JwtUtil jwtUtil;
@@ -42,13 +44,16 @@ public class RateLimitFilter implements Filter {
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-    String clientId = getClientIpAddress(httpRequest);
+    String clientId = httpRequest.getRemoteAddr();
+
+    // If IP is missing or blank (rare, but possible behind proxies)
     if (clientId == null || clientId.isBlank()) {
-      clientId = extractUserIdFromToken(httpRequest);
+      clientId = jwtUtil.extractUsernameFromRequest(httpRequest);
     }
 
+    // Last fallback if both failed
     if (clientId == null || clientId.isBlank()) {
-      clientId = "anonymous";
+      clientId = "unknown" + UUID.randomUUID();
     }
 
     Bucket bucket = resolveBucket(clientId);
@@ -58,11 +63,20 @@ public class RateLimitFilter implements Filter {
       httpResponse.addHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
       chain.doFilter(request, response);
     } else {
-      httpResponse.setStatus(429);
-      httpResponse.addHeader(
-          "X-Rate-Limit-Retry-After-Seconds",
-          String.valueOf(probe.getNanosToWaitForRefill() / 1_000_000_000));
-      httpResponse.getWriter().write("Rate limit exceeded");
+      long retryAfter = TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill());
+      if (retryAfter == 0) {
+        retryAfter = 1;
+      }
+      httpResponse.setStatus(429); // 429
+      httpResponse.setContentType("application/json");
+      httpResponse.addHeader("Retry-After", String.valueOf(retryAfter));
+      httpResponse.addHeader("X-RateLimit-Limit", String.valueOf(rateLimit));
+      httpResponse.addHeader("X-RateLimit-Remaining", "0");
+
+      // Send JSON error response
+      String errorJson =
+          String.format("{\"error\":\"Rate limit exceeded\",\"retryAfter\":%d}", retryAfter);
+      httpResponse.getWriter().write(errorJson);
     }
   }
 
@@ -79,26 +93,5 @@ public class RateLimitFilter implements Filter {
             .build();
 
     return Bucket.builder().addLimit(limit).build();
-  }
-
-  private String getClientIpAddress(HttpServletRequest request) {
-    String xForwardedFor = request.getHeader("X-Forwarded-For");
-    if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-      return xForwardedFor.split(",")[0].trim();
-    }
-    return request.getRemoteAddr();
-  }
-
-  private String extractUserIdFromToken(HttpServletRequest request) {
-    try {
-      String authHeader = request.getHeader("Authorization");
-      if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-        return null;
-      }
-      String token = authHeader.substring(7);
-      return jwtUtil.extractUsername(token);
-    } catch (Exception e) {
-      return null;
-    }
   }
 }

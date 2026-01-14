@@ -7,6 +7,8 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -47,7 +49,10 @@ public class RateLimitAspect {
       request.setAttribute("X-Rate-Limit-Remaining", probe.getRemainingTokens());
       return joinPoint.proceed();
     } else {
-      long retryAfter = probe.getNanosToWaitForRefill() / 1_000_000_000;
+      long retryAfter = TimeUnit.NANOSECONDS.toSeconds(probe.getNanosToWaitForRefill());
+      if (retryAfter == 0) {
+        retryAfter = 1;
+      }
       throw new RateLimitExceededException(
           "Rate limit exceeded. Try again in " + retryAfter + " seconds", retryAfter);
     }
@@ -72,37 +77,22 @@ public class RateLimitAspect {
   private String getRateLimitKey(
       ProceedingJoinPoint joinPoint, HttpServletRequest request, ApiRateLimit rateLimit) {
 
-    String methodName = joinPoint.getSignature().toShortString();
+    String username = jwtUtil.extractUsernameFromRequest(request);
 
+    // If annotation says "rate-limit by IP"
     if (rateLimit.useIpAddress()) {
-      String ipAddress = getClientIpAddress(request);
-      return methodName + ":" + ipAddress;
-    } else {
-      String userId = extractUserIdFromToken(request);
-      return methodName + ":" + (userId != null ? userId : "anonymous");
+      return getClientIpAddress(request);
     }
+
+    // Otherwise rate-limit by username if present
+    if (username != null && !username.isBlank()) {
+      return username;
+    }
+    // Fallback: unauthenticated
+    return "unknown" + UUID.randomUUID();
   }
 
   private String getClientIpAddress(HttpServletRequest request) {
-    String xForwardedFor = request.getHeader("X-Forwarded-For");
-    if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-      return xForwardedFor.split(",")[0].trim();
-    }
     return request.getRemoteAddr();
-  }
-
-  private String extractUserIdFromToken(HttpServletRequest request) {
-    try {
-      String authHeader = request.getHeader("Authorization");
-      if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-        return null;
-      }
-
-      String token = authHeader.substring(7);
-      return jwtUtil.extractUsername(token);
-
-    } catch (Exception e) {
-      return null;
-    }
   }
 }
