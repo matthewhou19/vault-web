@@ -117,7 +117,7 @@ class UserControllerTest {
     when(userService.usernameExists(username)).thenReturn(true);
     ResponseEntity<Map<String, Boolean>> response = userController.checkUsernameExists(username);
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(true, ((Map<String, Boolean>) response.getBody()).get("exists"));
+    assertEquals(true, (response.getBody()).get("exists"));
     verify(userService, times(1)).usernameExists(username);
   }
 
@@ -127,7 +127,7 @@ class UserControllerTest {
     when(userService.usernameExists(username)).thenReturn(false);
     ResponseEntity<Map<String, Boolean>> response = userController.checkUsernameExists(username);
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(false, ((Map<String, Boolean>) response.getBody()).get("exists"));
+    assertEquals(false, (response.getBody()).get("exists"));
     verify(userService, times(1)).usernameExists(username);
   }
 
@@ -137,14 +137,11 @@ class UserControllerTest {
     when(userService.getAllUsers()).thenReturn(testUsers);
     ResponseEntity<List<UserResponseDto>> response = userController.getAllUsers();
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals(testUsers.size(), ((List<UserResponseDto>) response.getBody()).size());
+    List<UserResponseDto> users = response.getBody();
+    assertEquals(testUsers.size(), users.size());
     verify(userService, times(1)).getAllUsers();
-    assertEquals(
-        testUsers.get(0).getUsername(),
-        ((List<UserResponseDto>) response.getBody()).get(0).getUsername());
-    assertEquals(
-        testUsers.get(1).getUsername(),
-        ((List<UserResponseDto>) response.getBody()).get(1).getUsername());
+    assertEquals(testUsers.get(0).getUsername(), users.get(0).getUsername());
+    assertEquals(testUsers.get(1).getUsername(), users.get(1).getUsername());
   }
 
   @Test
@@ -185,9 +182,9 @@ class UserControllerTest {
     // Mock: authService.login() throws BadCredentialsException
     when(authService.login(userDto.getUsername(), userDto.getPassword()))
         .thenThrow(new BadCredentialsException("Invalid credentials"));
-
     // Act & Assert: Verify the exception is thrown (GlobalExceptionHandler handles it in real app)
     assertThrows(BadCredentialsException.class, () -> userController.login(userDto, responseMock));
+    verify(refreshTokenService, never()).create(any(User.class), any(HttpServletResponse.class));
   }
 
   @Test
