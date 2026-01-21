@@ -14,7 +14,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-
 import vaultWeb.models.User;
 import vaultWeb.repositories.RefreshTokenRepository;
 import vaultWeb.repositories.UserRepository;
@@ -23,23 +22,17 @@ import vaultWeb.security.JwtUtil;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-  @Mock
-  private AuthenticationManager authenticationManager;
+  @Mock private AuthenticationManager authenticationManager;
 
-  @Mock
-  private JwtUtil jwtUtil;
+  @Mock private JwtUtil jwtUtil;
 
-  @Mock
-  private UserRepository userRepository;
+  @Mock private UserRepository userRepository;
 
-  @Mock
-  private RefreshTokenRepository refreshTokenRepository;
+  @Mock private RefreshTokenRepository refreshTokenRepository;
 
-  @Mock
-  private RefreshTokenService refreshTokenService;
+  @Mock private RefreshTokenService refreshTokenService;
 
-  @InjectMocks
-  private AuthService authService;
+  @InjectMocks private AuthService authService;
 
   private User createUser(String username, String password) {
     User user = new User();
@@ -55,13 +48,12 @@ class AuthServiceTest {
 
     when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
         .thenReturn(authentication);
-    when(authentication.getPrincipal()).thenReturn(
-        org.springframework.security.core.userdetails.User
-            .withUsername("testuser")
-            .password("hashedPwd")
-            .authorities("ROLE_USER")
-            .build()
-    );
+    when(authentication.getPrincipal())
+        .thenReturn(
+            org.springframework.security.core.userdetails.User.withUsername("testuser")
+                .password("hashedPwd")
+                .authorities("ROLE_USER")
+                .build());
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(jwtUtil.generateToken(user)).thenReturn("jwt-token");
 
@@ -78,10 +70,7 @@ class AuthServiceTest {
     when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
         .thenThrow(new BadCredentialsException("Bad credentials"));
 
-    assertThrows(
-        BadCredentialsException.class,
-        () -> authService.login("unknown", "password")
-    );
+    assertThrows(BadCredentialsException.class, () -> authService.login("unknown", "password"));
   }
 
   @Test
@@ -89,9 +78,6 @@ class AuthServiceTest {
     when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
         .thenThrow(new BadCredentialsException("Bad credentials"));
 
-    assertThrows(
-        BadCredentialsException.class,
-        () -> authService.login("testuser", "wrong")
-    );
+    assertThrows(BadCredentialsException.class, () -> authService.login("testuser", "wrong"));
   }
 }

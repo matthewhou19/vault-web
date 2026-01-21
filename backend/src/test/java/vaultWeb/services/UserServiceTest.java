@@ -10,24 +10,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import vaultWeb.exceptions.DuplicateUsernameException;
 import vaultWeb.exceptions.UnauthorizedException;
 import vaultWeb.models.User;
 import vaultWeb.repositories.UserRepository;
 
-
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
-  @Mock
-  private UserRepository userRepository;
+  @Mock private UserRepository userRepository;
 
-  @Mock
-  private PasswordEncoder passwordEncoder;
+  @Mock private PasswordEncoder passwordEncoder;
 
-  @InjectMocks
-  private UserService userService;
+  @InjectMocks private UserService userService;
 
   private User createUser(Long id, String username, String password) {
     User user = new User();
@@ -56,10 +51,7 @@ class UserServiceTest {
 
     when(userRepository.existsByUsername("existing")).thenReturn(true);
 
-    assertThrows(
-        DuplicateUsernameException.class,
-        () -> userService.registerUser(user)
-    );
+    assertThrows(DuplicateUsernameException.class, () -> userService.registerUser(user));
 
     verify(userRepository, never()).save(any());
   }
@@ -80,10 +72,7 @@ class UserServiceTest {
 
   @Test
   void shouldReturnAllUsers() {
-    List<User> users = List.of(
-        createUser(1L, "user1", "pwd1"),
-        createUser(2L, "user2", "pwd2")
-    );
+    List<User> users = List.of(createUser(1L, "user1", "pwd1"), createUser(2L, "user2", "pwd2"));
 
     when(userRepository.findAll()).thenReturn(users);
 
@@ -113,9 +102,7 @@ class UserServiceTest {
     when(passwordEncoder.matches("wrong", "oldHashed")).thenReturn(false);
 
     assertThrows(
-        UnauthorizedException.class,
-        () -> userService.changePassword(user, "wrong", "new")
-    );
+        UnauthorizedException.class, () -> userService.changePassword(user, "wrong", "new"));
 
     verify(userRepository, never()).save(any());
   }
